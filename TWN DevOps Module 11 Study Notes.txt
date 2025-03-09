@@ -1,0 +1,143 @@
+Microservices is a modern architectural approach to designing software applications Instead of having a large, monolithic application that performs all functionalities, microservices involve breaking down the application into smaller, independent services, each responsible for a specific business function
+
+1 Monolithic vs Microservices Architecture:
+   -> monolithic Architecture: A traditional software architecture in which all components and business logic are packaged into a single executable The entire application is tightly coupled, meaning that any change to one part of the system often requires redeploying the whole system
+   -> microservices Architecture: A distributed, service-oriented approach where a large application is broken down into multiple smaller, independently deployable services Each microservice is responsible for one specific function, and services communicate with each other using lightweight protocols like HTTP or message queues
+
+2 Benefits of Microservices:
+   -> scalability: Microservices can be scaled independently based on demand Each service can be scaled horizontally or vertically without affecting other services in the system
+   -> flexibility: Different teams can work on different microservices, allowing parallel development Microservices can also use different programming languages, databases, and frameworks, best suited for each service
+   -> resilience: If one microservice fails, it does not bring down the entire application, which improves fault tolerance
+   -> faster Time-to-Market: Development cycles are faster because each microservice can be updated, tested, and deployed independently
+   -> simplified Maintenance: smaller, modular codebases are easier to maintain and debug Bugs in one service are isolated and do not affect others
+
+communication Between Microservices
+
+microservices, being independent entities, must communicate with each other to work together Here are some of the primary ways microservices communicate
+
+1 service-to-service API Calls (synchronous Communication):
+   -> microservices typically communicate using RESTful APIs or GraphQL, often over HTTP or gRPC This is synchronous communication where one service makes an HTTP request to another service and waits for a response
+   -> example: The payment service in an e-commerce platform might call the inventory service to check stock before completing a transaction
+
+2 message-Based Communication (Asynchronous Communication):
+   -> asynchronous communication allows services to communicate by sending messages through message brokers like RabbitMQ, Kafka, or Redis The services do not need to wait for immediate responses
+   -> this approach can be more resilient and decouples services since they don’t need to be aware of each other’s availability
+   -> example: a notification service may listen to a message queue and send an email once a new user has been registered
+
+3 service Mesh Architecture:
+   -> a Service Mesh is an infrastructure layer that manages the communication between microservices, typically through a proxy or sidecar pattern
+   -> technologies like Istio, Linkerd, and HashiCorp Consul are common service mesh solutions They help manage traffic routing, monitoring, security (with mTLS), and load balancing in a more organized and controlled manner
+   -> example: Istio can manage retries, circuit breaking, load balancing, and end-to-end encryption between microservices
+
+DevOps Task: Deploying Microservices Application in Kubernetes (K8s)
+
+As a DevOps engineer, deploying microservices into a Kubernetes environment is one of the core responsibilities This includes setting up Kubernetes clusters, configuring resources, managing scaling, ensuring high availability, and adhering to best practices
+
+Task 1: Information Needed from Developers
+
+Before deploying a microservices application, the DevOps engineer needs the following information from the developers
+
+1 services to be deployed:
+   -> Identify all the microservices that need to be deployed in Kubernetes This could include user management, order processing, payment gateway, etc
+
+2 inter-service communication:
+   -> understand how the microservices communicate Do they use REST APIs, gRPC, or a messaging system like Kafka or RabbitMQ Knowing the communication method helps in setting up the networking and service discovery within the Kubernetes cluster
+
+3 databases and External Services:
+   -> information on which databases (SQL, NoSQL) each service uses It’s crucial for configuring persistent storage and services like MySQL or MongoDB in the Kubernetes environment
+   -> any third-party services (payment gateways, external APIs) should also be identified and integrated
+
+4 ports:
+   -> know which port each microservice runs on Kubernetes services (like ClusterIP, LoadBalancer, or NodePort) will expose the services on the specified ports
+
+Task 2: Preparing the Kubernetes Environment
+
+to deploy microservices in Kubernetes, follow these steps
+
+1 set Up Kubernetes Cluster:
+   -> create a Kubernetes cluster on a cloud provider (e.g., AWS, GCP, Azure) or on-premises You can use tools like eksctl for AWS or gcloud for GCP to provision Kubernetes clusters
+   
+2 create Secrets and ConfigMaps:
+   -> secrets store sensitive information like API keys, credentials, and passwords, while ConfigMaps store non-sensitive configuration data such as environment variables
+   
+3 create Deployments and Services:
+   -> deployments define the desired state for the application They specify how many replicas of a container should run, what image to use, and how to handle scaling
+   -> services expose deployments and allow inter-service communication You may use Kubernetes Services of type ClusterIP, LoadBalancer, or NodePort, depending on whether you need internal or external access to the service
+
+4 Helm Charts:
+   -> Helm is a package manager for Kubernetes that simplifies deployment A Helm chart is a collection of Kubernetes YAML templates that can be parameterised and reused
+   -> Helm charts make it easy to deploy similar services by providing a reusable template where values can be dynamically replaced during the deployment process
+
+Kubernetes Best Practices for Microservices
+
+1 pin container image versions:
+   -> always specify a fixed version (tag) of the container image Using the `latest` tag in production environments is risky because it can lead to unpredictable behavior and potential bugs when the image changes unexpectedly
+   
+2 liveness and readiness probes:
+   -> liveness Probe: Helps Kubernetes monitor the health of a container If a container is unhealthy (e.g., the app inside crashes), Kubernetes will restart the container
+   -> Readiness Probe: Tells Kubernetes when the application is fully initialised and ready to receive traffic If the service isn’t ready, traffic will not be routed to it
+   
+3 resource limits and requests:
+   -> resource Requests specify the minimum amount of CPU and memory a container requires Resource Limits specify the maximum resources a container can consume Setting proper resource limits prevents a misbehaving container from consuming excessive resources and affecting others
+   
+4 avoid NodePort in production:
+   -> NodePort exposes Kubernetes worker nodes directly to external traffic, which is not recommended for production because it opens up additional points of entry LoadBalancer or Ingress should be used instead as they offer better security and control
+   
+5 multiple replicas:
+   -> always run more than one replica of each application in Kubernetes This ensures high availability and fault tolerance In case one pod crashes, the other replicas can continue serving traffic
+
+6 multiple worker Nodes:
+   -> to ensure high availability and avoid single points of failure, it’s important to deploy your services across multiple worker nodes Kubernetes will ensure pods are distributed across nodes
+
+7 labeling and Namespaces:
+   -> labels: Kubernetes labels allow you to group and identify related resources (e.g., Pods, Deployments) Labels are helpful for service discovery, scaling, and monitoring
+   -> Namespaces: Namespaces logically separate Kubernetes resources, allowing you to manage them by environment (e.g., `dev`, `prod`) or team This helps in defining access control policies
+
+security best Practices in Kubernetes
+
+1 vulnerability scanning for container images:
+   -> container images can contain known vulnerabilities, especially if they use outdated libraries Use tools like Trivy or Clair to scan container images for vulnerabilities before deploying them
+   -> incorporate automated security scanning in your CI/CD pipeline to catch vulnerabilities early
+
+2 no root access for containers:
+   -> containers should run as non-root users to limit the potential damage that a compromised container can cause Running as a non-root user reduces the risk of attackers gaining access to the underlying host
+
+3 keep Kubernetes updated:
+   -> Kubernetes frequently releases security patches and bug fixes Regularly updating your Kubernetes clusters ensures that they remain secure and stable
+   -> use rolling updates for minimal downtime during Kubernetes updates
+
+Kubernetes on AWS: elastic Kubernetes Service (EKS)
+
+1 Provisioning EKS:
+   -> use AWS eksctl or the AWS Management Console to create an EKS cluster eksctl simplifies the process by creating clusters, node groups, and configuring networking (VPC, subnets) in one command
+
+2 Node groups and Auto-Scaling:
+   -> EKS supports scaling node groups to adjust to application traffic Cluster Autoscaler can automatically add or remove EC2 instances based on the demand for resources
+
+3 Fargate for Serverless Kubernetes:
+   -> AWS Fargate allows you to run containers without managing the underlying EC2 instances Fargate automatically provisions and scales resources for you, simplifying Kubernetes management
+
+CI/CD Pipeline for Kubernetes deployments
+
+1 Jenkins with DockerHub and AWS ECR:
+   -> use Jenkins to automate the CI/CD pipeline The Jenkins pipeline can build Docker images and push them to DockerHub or AWS ECR
+   -> set up automated deployment of microservices to Kubernetes clusters via Helm, with each Jenkins job triggered by changes to the source code or Docker images
+
+2 pipeline configuration:
+   -> define environment variables within the Jenkins pipeline using envsubst (from the `gettext-base` tool) to replace values dynamically during deployment
+   -> Jenkins stores secrets securely (e.g., DockerHub credentials or AWS keys) using Jenkins Credentials Secrets are then referenced in Kubernetes deployment files using Kubernetes Secrets
+
+3 CI/CD for AWS ECR:
+   -> set up automated Docker image building, testing, and pushing to AWS ECR as part of the CI pipeline Jenkins integrates with AWS CLI to push and pull images to/from ECR
+
+Final Checklist & Resources
+
+at the end of the course, a checklist helps ensure all tasks are completed, such as:
+-> cluster creation (EKS or on-prem Kubernetes)
+-> configuring deployment pipelines
+-> best practices in image versioning, probe configuration, and service scaling
+-> Kubernetes security setup
+-> integrating monitoring tools like Prometheus, Grafana, and AWS CloudWatch for observability
+
+useful documentation and repositories from the course, along with hands-on demos and GitHub links, are provided for practical learning
+
